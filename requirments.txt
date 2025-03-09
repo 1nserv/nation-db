@@ -1,0 +1,4 @@
+# Global
+bcrypt
+python-dotenv
+requests
