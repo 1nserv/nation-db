@@ -9,10 +9,21 @@ from utils.functions import auth
 from utils.functions import entities
 from utils.functions import server
 
-def get_position(req: Request, id: str):
-	if not sql_safe(id):
+def get_position(req: Request, id: str, tree: tuple = ()):
+	if not tn_safe(id):
 		server.error(req.remote_addr, 'GET', f'/model/positions/{id}', 400, "Incorrect ID")
 		return {"message": "Bad Request"}, 400
+
+	# ---- SÉCURITÉ ----
+
+	for elem in tree:
+		if not tn_safe(elem):
+			server.error(req.remote_addr, 'GET', f'/model/positions/{id}', 400, "Invalid Param")
+			return {"message": "Invalid Param"}, 400
+
+		if id == elem:
+			server.error(req.remote_addr, 'GET', f'/model/positions/{id}', 508, "Loop Detected")
+			return {"message": "Loop Detected"}, 508
 
 	# ---- FOUILLE DANS LA DB ----
 
@@ -22,8 +33,19 @@ def get_position(req: Request, id: str):
 		server.error(req.remote_addr, 'GET', f'/model/positions/{id}', 404, "Position Not Found")
 		return {"message": "Position does not exist"}, 404
 
+	pos = data.copy()
+
+	if pos['category']:
+		res = get_position(req, pos['category'], tree + (id,))
+
+		if res[1] == 200:
+			parent = res[0]
+
+			pos["permissions"] = merge_permissions(pos["permissions"], parent["permissions"])
+			pos["manager_permissions"] = merge_permissions(pos["manager_permissions"], parent["manager_permissions"])
+
 	server.log(req.remote_addr, 'GET', f'/model/positions/{id}')
-	return data, 200
+	return pos, 200
 
 def search_positions(req: Request):
 	params = req.args
@@ -90,8 +112,7 @@ def update_position(req: Request, id: str, action: str):
 		server.error(req.remote_addr, "POST", f"/model/positions/{id}/{action}", 401, "Unauthorized")
 		return {"message": "Unauthorized"}, 401
 
-	required_perms = pos["manager_permissions"]
-	required_perms["database"] = "ame-"
+	required_perms = merge_permissions(pos["manager_permissions"], {"database", "ame-"})
 
 	if not auth.check_session(token, required_perms, at_least_one = True):
 		server.error(req.remote_addr, "POST", f"/model/positions/{id}/{action}", 403, "Missing Permissions")

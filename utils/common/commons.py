@@ -14,9 +14,12 @@ def merge_permissions(d1: dict[str, str], d2: dict[str, str]) -> dict[str, str]:
 	for key, val in d2.items():
 		ref = ""
 		for state, i in zip(val, range(len(val))):
-			if new_dict[key][i] == "-":
+			if key not in new_dict.keys():
+				new_dict[key] = '----'
+
+			if new_dict[key][i] == "-": # d2 dominant
 				ref += state
-			else:
+			else: # d1 dominant
 				ref += new_dict[key][i]
 
 		new_dict[key] = ref
