@@ -65,13 +65,11 @@ def fetch(zone: str, **query: typing.Any) -> list[dict]:
 	items = sorted(get_items(base, table), key = lambda item: -int(item.get('register_date', "0")))
 	res = []
 
-	value = json.dumps(value)
-
 	for item in items:
 		if item is None:
 			continue
 
-		for q, value in query.items():
+		for q, value in query.items():	
 			try:
 				parsed_attr = item[q]
 
