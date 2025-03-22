@@ -65,6 +65,7 @@ def get_loan(id: str) -> dict:
 		loan = res[0]
 
 	loan["frozen"] = bool(loan["frozen"])
+	loan["is_percentage"] = bool(loan["is_percentage"])
 
 	return loan
 
@@ -75,6 +76,7 @@ def save_loan(data: dict, overwrite: bool = True) -> tuple[bool, str]:
 		return False, "Loan Already Exists"
 
 	data["frozen"] = int(data["frozen"])
+	data["is_percentage"] = int(data["is_percentage"])
 
 	db.put_item(dbpath, "Loans", data, overwrite)
 
