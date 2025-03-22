@@ -71,3 +71,30 @@ def tn_safe(data: str) -> bool: # Safe for table and bucket names
 
 def gen_digicode(length: int = 6) -> str:
 	return hex(random.randint(0, 16 ** 8))[2:].upper().zfill(length)
+
+# Impôts
+
+TAXATIONS = ('taxe_ega',)
+
+def calculate_amount(tag: str, income: int = 0) -> int:
+	if tag not in TAXATIONS:
+		return 0
+
+	if tag == "taxe_ega": # Taxe égalitaire
+		if income < 2000:
+			percentage = 0
+		elif 2000 <= income < 5000:
+			percentage = .01
+		elif 5000 <= income < 20000:
+			percentage = .025
+		elif 20000 <= income < 50000:
+			percentage = .045
+		else:
+			percentage = .05
+			e = income
+
+			while e >= 150000 and percentage < .2:
+				percentage += .01
+				e -= 100000
+
+	return int(round(income * percentage))

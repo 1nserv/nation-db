@@ -5,7 +5,7 @@ from utils.db import drivepath
 from .commons import *
 
 def register_file(_dir: str, name: str, data: bytes, overwrite: bool = False):
-	_dir = os.path.join(drivepath, name)
+	_dir = os.path.join(drivepath, _dir)
 	path = os.path.join(_dir, name)
 
 	if not os.path.exists(_dir): # La database est bien structurée, aucune création de dossier permise
