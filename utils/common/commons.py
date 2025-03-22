@@ -8,8 +8,8 @@ def get_in_drive(path: str) -> bytes:
 	with open(os.path.join(drivepath, path), 'rb') as _buffer:
 		return _buffer.read()
 
-def merge_permissions(d1: dict[str, str], d2: dict[str, str]) -> dict[str, bool]:
-	new_dict: dict[str, bool] = d1.copy()
+def merge_permissions(d1: dict[str, str], d2: dict[str, str]) -> dict[str, str]:
+	new_dict: dict[str, str] = d1.copy()
 
 	for key, val in d2.items():
 		ref = ""
