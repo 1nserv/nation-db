@@ -6,6 +6,8 @@ from utils.db import dbpath
 
 from ..common.database import fetch
 from ..common import database as db
+from ..common.commons import *
+
 from . import entities
 
 dbpath = os.path.join(dbpath, "auth.db")
@@ -55,6 +57,7 @@ def save_account(data: dict) -> tuple[bool, str]:
 
 def check_session(token: str, permissions: dict[str, str], at_least_one = False):
 	session = get_session(token)
+	permissions = merge_permissions(permissions, { "database": "-m--" })
 
 	if not session:
 		return False
