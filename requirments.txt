@@ -2,3 +2,6 @@
 bcrypt
 python-dotenv
 requests
+
+# Serveur
+waitress
