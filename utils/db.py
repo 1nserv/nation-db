@@ -15,7 +15,10 @@ salt: bytes = b''
 try:
 	with open(".local/.salt", "rb") as _buffer:
 		salt = _buffer.read()
-except FileNotFoundError:
+except:
 	with open(".local/.salt", "wb") as _buffer:
+		if not os.path.exists('.local'):
+			os.mkdir('.local')
+
 		salt = bcrypt.gensalt()
 		_buffer.write(salt)
