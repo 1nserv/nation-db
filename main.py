@@ -2,12 +2,12 @@ from flask import Flask, request
 
 from utils.interface.auth import *
 from utils.interface.drive import *
-"""
+
 from utils.interface.economy import *
 from utils.interface.economy.inventories import *
 from utils.interface.economy.items import *
 from utils.interface.economy.loans import *
-"""
+
 from utils.interface.entities import *
 from utils.interface.entities.positions import *
 
@@ -113,6 +113,7 @@ def ping():
 		code = 200
 
 	return {
+		'_version': 300,
 		'global': _global,
 		'status': status
 	}, code
@@ -166,12 +167,6 @@ def fetch(_class: str):
 	elif _class == 'positions':
 		return search_positions(request)
 
-	# Si la classe ne correspond à rien
-	else:
-		server.error(request.remote_addr, 'GET', '/model', 400, "Invalid Data Class")
-		return {"message": "Invalid Data Class"}, 400
-
-	"""
 	# Économie
 	elif _class == 'accounts':
 		return search_accounts(request)
@@ -182,16 +177,18 @@ def fetch(_class: str):
 	elif _class == 'sales':
 		return [], 200
 	elif _class == 'items':
-		return search_items(request)"
-	
+		return search_items(request)
 
 	# République
 	elif _class == 'votes':
 		return [], 200
 	elif _class == 'elections':
-		return [], 200"
-	"""
+		return [], 200
 
+	# Si la classe ne correspond à rien
+	else:
+		server.error(request.remote_addr, 'GET', '/model', 400, "Invalid Data Class")
+		return {"message": "Invalid Data Class"}, 400
 
 
 # ---------- ENTITÉS ----------
@@ -280,7 +277,7 @@ def create_model(_class: str):
 		server.error(request.remote_addr, 'PUT', '/new_model', 400, "Invalid Data Class")
 		return {"message": "Invalid Data Class"}, 400
 
-"""
+
 # ---------- BANQUE ----------
 
 @app.put("/bank/register_account")
@@ -305,4 +302,3 @@ def edit_bank_account(id: str, action: str):
 	else:
 		server.error(request.remote_addr, 'POST', f'/bank/accounts/{id}/{action}', 400, "Invalid Action")
 		return {"message": "Invalid Action"}, 400
-"""
