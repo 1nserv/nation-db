@@ -2,7 +2,7 @@ import os
 import re
 import random
 
-from utils.db import drivepath, dbpath
+from utils.db import drivepath
 
 def get_in_drive(path: str) -> bytes:
 	with open(os.path.join(drivepath, path), 'rb') as _buffer:
@@ -73,31 +73,98 @@ def tn_safe(data: str) -> bool: # Safe for table and bucket names
 # Banque
 
 def gen_digicode(length: int = 6) -> str:
-	return hex(random.randint(0, 16 ** 8))[2:].upper().zfill(length)
+	return hex(random.randint(0, 16 ** length))[2:].upper().zfill(length)
 
 # Impôts
 
-TAXATIONS = ('taxe_ega',)
+TAXATIONS = {
+	'taxe_ega': "105",
+	'taxe_dc': "106"
+}
 
-def calculate_amount(tag: str, income: int = 0) -> int:
-	if tag not in TAXATIONS:
-		return 0
+BONUSES = {
+	'aide_ega': "105",
+	'benevolat': "105",
+	'campagnes': "6"
+}
 
-	if tag == "taxe_ega": # Taxe égalitaire
-		if income < 2000:
-			percentage = 0
-		elif 2000 <= income < 5000:
+def calculate_amount(amount: int = 0, specs: dict = {},history: dict = {}) -> dict:
+	sheet = {
+		"aide_ega": 0,
+		"benevolat": 0,
+		"campagnes": 0,
+		"taxe_ega": 0,
+		"taxe_dc": 0
+	}
+
+	# Taxe égalitaire
+	if amount < 2000:
+		percentage = 0
+	elif 2000 <= amount < 5000:
+		percentage = .01
+	elif 5000 <= amount < 20000:
+		percentage = .025
+	elif 20000 <= amount < 50000:
+		percentage = .045
+	else:
+		percentage = .05
+		e = amount
+
+		while e >= 150000 and percentage < .2:
+			percentage += .01
+			e -= 100000
+
+	sheet['taxe_ega'] += int(round(amount * percentage))
+
+	# Taxe double compte
+	if specs.get('DC'):
+		if amount < 2000:
 			percentage = .01
-		elif 5000 <= income < 20000:
+		elif 2000 <= amount < 5000:
 			percentage = .025
-		elif 20000 <= income < 50000:
+		elif 5000 <= amount < 20000:
 			percentage = .045
-		else:
+		elif 20000 <= amount < 50000:
 			percentage = .05
-			e = income
+		else:
+			percentage = .1
+			e = amount
 
-			while e >= 150000 and percentage < .2:
-				percentage += .01
+			while e >= 150000 and percentage < .3:
+				percentage += .05
 				e -= 100000
 
-	return int(round(income * percentage))
+		sheet['taxe_dc'] += int(round(amount * percentage))
+
+
+	"""
+	AIDES & BONUS
+	"""
+
+	# Aide égalitaire
+	if amount < 2000:
+		sheet['aide_ega'] -= 2000 - amount
+
+	# Bonus de dons aux assos et de participation aux campagnes
+	if amount != 0:
+		dons = history.get('dons', 0)
+
+		if dons / amount < .05:
+			sheet['benevolat'] -= .1 * dons
+		elif .05 <= dons / amount < .1:
+			sheet['benevolat'] -= .25 * dons
+		elif .1 <= dons / amount < .25:
+			sheet['benevolat'] -= .4 * dons
+		elif .25 <= dons / amount < .4:
+			sheet['benevolat'] -= .6 * dons
+		elif .4 <= dons / amount < .6:
+			sheet['benevolat'] -= .75 * dons
+		elif .6 <= dons / amount < 1:
+			sheet['benevolat'] -= dons
+
+	campagnes = history.get('campagnes', 0)
+
+	if campagnes >= 0:
+		sheet['campagnes'] -= campagnes
+
+	return sheet
