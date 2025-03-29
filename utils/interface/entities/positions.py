@@ -168,8 +168,8 @@ def update_position(req: Request, id: str, action: str):
 
 	session = auth.get_session(token)
 
-	server.create_archive("entities", {
-		"action": "UPDATE_POSITION",
+	server.create_archive("entities/positions", {
+		"action": "UPDATE",
 		"author": session["author"],
 		"attribute": attr,
 		"old_value": old_value,
@@ -236,5 +236,10 @@ def register_position(req: Request):
 			return {"message": "Unprocessable Entity"}, 422
 
 	server.log(req.remote_addr, 'PUT', f'/new_model/{type}', 200)
-	server.create_archive("entities", {"action": "REGISTER_POSITION", "author": session["author"], "base": "positions"})
+	server.create_archive("entities/positions", {
+		"action": "REGISTER",
+		"author": session["author"],
+		"base": "positions"
+	})
+
 	return data, 200
