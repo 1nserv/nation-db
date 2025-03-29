@@ -182,8 +182,6 @@ with open(
 from utils.functions import entities
 from utils.functions import auth
 
-from scripts.reset import init_admins, init_positions, init_departments, init_institutions
-
 entities.save_position({
     "id": "superadmin",
     "name": "SuperAdmin",
