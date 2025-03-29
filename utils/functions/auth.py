@@ -55,7 +55,7 @@ def save_account(data: dict) -> tuple[bool, str]:
 
 
 
-def check_session(token: str, permissions: dict[str, str], at_least_one = False):
+def check_session(token: str, permissions: dict[str, str]):
 	session = get_session(token)
 	permissions = merge_permissions(permissions, { "database": "-m--" })
 
@@ -73,9 +73,6 @@ def check_session(token: str, permissions: dict[str, str], at_least_one = False)
 
 	for key, value in permissions.items():
 		if key not in pos["permissions"]:
-			if not at_least_one:
-				return False
-
 			continue
 
 		match = True
@@ -85,12 +82,6 @@ def check_session(token: str, permissions: dict[str, str], at_least_one = False)
 				break
 
 		if match:
-			match_found = True
+			return True
 
-			if at_least_one:
-				return True
-
-		if not match and not at_least_one:
-			return False
-
-	return match_found if at_least_one else True
+	return False

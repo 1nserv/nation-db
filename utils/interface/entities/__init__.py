@@ -399,11 +399,11 @@ def create_entity(req: Request, _class: str):
 			return {"message": "Bad Request"}, 400
 
 		if _class == "individuals":
-			if not auth.check_session(token, {"members": "a---", "database": "-me-"}, at_least_one = True):
+			if not auth.check_session(token, {"members": "a---"}):
 				server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 403, "Missing Permissions")
 				return {"message": "Forbidden"}, 403
 		elif _class == "organizations":
-			if not auth.check_session(token, {"organizations": "a---", "database": "-me-"}, at_least_one = True):
+			if not auth.check_session(token, {"organizations": "a---"}):
 				server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 403, "Missing Permissions")
 	else:
 		server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 401, "Missing Token")

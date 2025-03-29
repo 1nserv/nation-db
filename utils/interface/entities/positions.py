@@ -114,7 +114,7 @@ def update_position(req: Request, id: str, action: str):
 
 	required_perms = merge_permissions(pos["manager_permissions"], {"database", "ame-"})
 
-	if not auth.check_session(token, required_perms, at_least_one = True):
+	if not auth.check_session(token, required_perms):
 		server.error(req.remote_addr, "POST", f"/model/positions/{id}/{action}", 403, "Missing Permissions")
 		return {"message": "Missing Permissions"}, 403
 
@@ -190,7 +190,7 @@ def register_position(req: Request):
 			server.error(req.remote_addr, 'PUT', f'/new_model/positions', 400, "Bad Request")
 			return {"message": "Bad Request"}, 400
 
-		if not auth.check_session(token, {"database": "-me-"}, at_least_one = True):
+		if not auth.check_session(token, {"database": "-me-"}):
 			server.error(req.remote_addr, 'PUT', f'/new_model/positions', 403, "Missing Permissions")
 			return {"message": "Forbidden"}, 403
 	else:
