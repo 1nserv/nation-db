@@ -202,7 +202,7 @@ entities.save_position({
         "inventories": "amer",
         "items": "amer",
         "laws": "----",
-        "loans": "loan",
+        "loans": "amer",
         "members": "amer",
         "mines": "amer",
         "money": "amer",
