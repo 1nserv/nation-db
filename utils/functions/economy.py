@@ -108,8 +108,6 @@ def get_inventory(id: str) -> dict:
 	else:
 		inventory = res[0]
 
-	inventory["frozen"] = bool(inventory["frozen"].lower())
-	inventory["flagged"] = bool(inventory["frozen"].lower())
 	inventory["items"] = json.loads(inventory["items"])
 
 	return inventory
@@ -120,8 +118,6 @@ def save_inventory(data: dict, overwrite: bool = True) -> tuple[bool, str]:
 	if existing_data and not overwrite:
 		return False, "Inventory Already Exists"
 
-	data["frozen"] = int(data["frozen"])
-	data["flagged"] = int(data["flagged"])
 	data["items"] = json.dumps(data["items"])
 
 	db.put_item(dbpath, "Inventories", data, overwrite)
