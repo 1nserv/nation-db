@@ -198,15 +198,7 @@ def update_item(req: Request, id: str, action: str):
 
 	old_value = ""
 
-	if action == 'delete':
-		# =========== TRAITEMENT ============
-
-		res = economy.delete_item(id)
-
-		if res[0]:
-			return {"message": "Success"}, 200
-
-	elif action == 'rename':
+	if action == 'rename':
 		# ============ PARAMS ============
 
 		if not check_params(['name'], params, ignore_sql = False):
