@@ -325,7 +325,7 @@ def sell_item(req: Request, id: str):
 			server.error(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 400, "Bad Request")
 			return {"message": "Bad Request"}, 400
 
-		if not auth.check_session(token, { "inventories": "--e-" }):
+		if not auth.check_session(token, { "marketplace": "a---" }):
 			server.error(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 403, "Forbidden")
 			return {"message": "Forbidden"}, 403
 	else:
@@ -335,6 +335,27 @@ def sell_item(req: Request, id: str):
 	session = auth.get_session(token)
 
 	# ============ TRAITEMENT ============
+
+	inventory = economy.get_inventory(id)
+	account = economy.get_account(id)
+
+	if not inventory:
+		server.error(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 401, "No Inventory")
+		return {"message": "No Inventory"}, 401
+
+	if not account:
+		server.error(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 401, "No Bank Account")
+		return {"message": "No Bank Account"}, 401
+
+	# Check du digicode
+
+	if (not payload.get('digicode')) or bcrypt.hashpw(payload.get("digicode").encode(), db.salt).decode() != inventory["digicode_hash"]:
+		server.error(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 401, "Wrong Digicode")
+		return {"message": "Wrong Digicode"}, 401
+
+	if inventory["frozen"]:
+		server.error(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 401, "Inventory Is Frozen")
+		return {"message": "Inventory Is Frozen"}, 401
 
 	data = {
 		'id': hex(int(time.time() * 1000))[2:].upper(),

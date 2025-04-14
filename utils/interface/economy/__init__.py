@@ -248,8 +248,6 @@ def freeze_account(req: Request, id: str):
 	if not account:
 		server.error(req.remote_addr, 'POST', f'/bank/accounts/{id}/freeze', 404, "Account Not Found")
 		return {"message": "Account Not Found"}, 404
-	else:
-		account = account.copy()
 
 	session = auth.get_session(token)
 	account["frozen"] = params.get('frozen', "true") == "true"
@@ -258,7 +256,7 @@ def freeze_account(req: Request, id: str):
 
 	server.log(req.remote_addr, 'POST', f'/bank/accounts/{id}/freeze', 200)
 	server.create_archive("bank", {"action": "FREEZE_ACCOUNT" if account["frozen"] else "UNFREEZE_ACCOUNT", "author": session["author"], "account_id": account["id"], "reason": req.json["reason"]})
-	return account, 200
+	return {"message": "Success"}, 200
 
 def flag_account(req: Request, id: str):
 	if not req.is_json:
