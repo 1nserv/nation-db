@@ -21,5 +21,6 @@ py -m scripts.reset.init_positions
 
 py -m scripts.reset.economy.init_accounts
 py -m scripts.reset.economy.init_inventories
+py -m scripts.reset.economy.init_items
 
 clear
