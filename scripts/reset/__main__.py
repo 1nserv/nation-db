@@ -131,6 +131,7 @@ with sqlite3.connect(os.path.join(dbpath, 'marketplace.db')) as economy:
 
     economy.execute("""CREATE TABLE Sales (
         id TEXT PRIMARY KEY NOT NULL,
+        open INTEGER NOT NULL,
         item_id TEXT NOT NULL,
         quantity INTEGER NOT NULL,
         price INTEGER NOT NULL, 

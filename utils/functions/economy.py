@@ -194,6 +194,8 @@ def get_sale(id: str) -> dict:
 	else:
 		sale = res[0]
 
+	sale['open'] = bool(sale['open'])
+
 	return sale
 
 def save_sale(data: dict, overwrite: bool = True) -> tuple[bool, str]:
@@ -201,6 +203,8 @@ def save_sale(data: dict, overwrite: bool = True) -> tuple[bool, str]:
 
 	if existing_data and not overwrite:
 		return False, "Sale Already Exists"
+
+	data['open'] = int(data['open'])
 
 	db.put_item(dbpath, "Sales", data, overwrite)
 

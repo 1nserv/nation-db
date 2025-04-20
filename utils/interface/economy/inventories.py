@@ -336,6 +336,24 @@ def sell_item(req: Request, id: str):
 
 	# ============ TRAITEMENT ============
 
+	# Check params
+
+	if not tn_safe(params['item']):
+		server.error(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 400, "Invalid Or Missing Parameter")
+		return {"message": "Invalid Or Missing Parameter"}, 400
+
+	try:
+		quantity = int(params['quantity'])
+	except:
+		server.error(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 400, "Invalid Or Missing Parameter")
+		return {"message": "Invalid Or Missing Parameter"}, 400
+
+	try:
+		price = int(params['price'])
+	except:
+		server.error(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 400, "Invalid Or Missing Parameter")
+		return {"message": "Invalid Or Missing Parameter"}, 400
+
 	inventory = economy.get_inventory(id)
 	account = economy.get_account(id)
 
@@ -353,16 +371,31 @@ def sell_item(req: Request, id: str):
 		server.error(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 401, "Wrong Digicode")
 		return {"message": "Wrong Digicode"}, 401
 
-	if inventory["frozen"]:
-		server.error(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 401, "Inventory Is Frozen")
-		return {"message": "Inventory Is Frozen"}, 401
+	if account["frozen"]:
+		server.error(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 401, "Seller Account Is Frozen")
+		return {"message": "Seller Account Is Frozen"}, 401
+
+	# Initialisation de la vente
 
 	data = {
 		'id': hex(int(time.time() * 1000))[2:].upper(),
+		'open': True,
+		'seller_id': session['author'],
 		'item_id': params['item'],
-		'quantity': params['quantity'],
-		'price': params['price'],
-		'seller_id': session['author']
+		'quantity': quantity,
+		'price': price
 	}
 
-	
+	economy.save_sale(data)
+
+	server.log(req.remote_addr, 'POST', f'/bank/inventories/{id}/sell_item', 200)
+	server.create_archive('marketplace', {
+		'action': "SELL_ITEM",
+		'sale_id': data['id'],
+		'author': session['author'],
+		'item_id': params['item'],
+		'quantity': quantity,
+		'price': price
+	})
+
+	return { 'sale_id': data['id'] }, 200

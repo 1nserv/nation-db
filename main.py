@@ -325,6 +325,8 @@ def get_inventory(id: str):
 def edit_inventory(id: str, action: str):
 	if action == 'deposit':
 		return inventories.deposit_item(request, id)
+	if action == 'sell_item':
+		return inventories.sell_item(request, id)
 
 	else:
 		server.error(request.remote_addr, 'POST', f'/bank/inventories/{id}/{action}', 400, "Invalid Action")
