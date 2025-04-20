@@ -150,7 +150,7 @@ def get_item(id: str) -> dict:
 	else:
 		item = res[0]
 
-	item["categories"] = json.loads(item["categories"].lower())
+	item["category"] = json.loads(item["category"].lower())
 	item["craft"] = json.loads(item["craft"].lower())
 
 	return item
@@ -161,7 +161,7 @@ def save_item(data: dict, overwrite: bool = True) -> tuple[bool, str]:
 	if existing_data and not overwrite:
 		return False, "Item Already Exists"
 
-	data["categories"] = json.dumps(data["categories"])
+	data["category"] = json.dumps(data["category"])
 	data["craft"] = json.dumps(data["craft"])
 
 	db.put_item(dbpath, "Items", data, overwrite)
