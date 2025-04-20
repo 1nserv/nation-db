@@ -29,7 +29,6 @@ def register_item(req: Request):
 		server.error(req.remote_addr, 'PUT', f'/marketplace/register_item', 401, "Unauthorized")
 		return {"message": "Unauthorized"}, 401
 
-	params = req.args
 	payload = req.json
 
 	if token:
@@ -44,11 +43,11 @@ def register_item(req: Request):
 		server.error(req.remote_addr, 'PUT', f'/marketplace/register_item', 401, "Unauthorized")
 		return {"message": "Unauthorized"}, 401
 
-	if not check_params(['name'], params, ignore_sql = False):
+	if not check_params(['name'], payload, ignore_sql = False):
 		server.error(req.remote_addr, 'PUT', f'/marketplace/register_item', 400, "Bad Request")
 		return {"message": "Bad Request"}, 400
 
-	if 'emoji' in params.keys() and not check_params(['emoji'], params, ignore_sql = False):
+	if 'emoji' in payload.keys() and not check_params(['emoji'], payload, ignore_sql = False):
 		server.error(req.remote_addr, 'PUT', f'/marketplace/register_item', 400, "Bad Request")
 		return {"message": "Bad Request"}, 400
 
@@ -66,7 +65,7 @@ def register_item(req: Request):
 
 			res = economy.get_item(item)
 
-			if not res[0]:
+			if not res:
 				server.error(req.remote_addr, 'PUT', f'/marketplace/register_item', 404, "Unknown Item In Craft")
 				return {"message": "Unknown Item In Craft"}, 404
 
@@ -76,10 +75,10 @@ def register_item(req: Request):
 
 	item = {
 		"id": hex(round(time.time()))[2:].upper(), # ID de l'item
-		"name": params.get("tag", "inconnu"), # Nom de l'item
+		"name": payload.get("name", "inconnu"), # Nom de l'item
 		"emoji": payload.get("emoji", ":lightbulb:"), # Emoji de l'item
-		"categories": payload.get('categories'), # Catégories de l'item
-		"craft": payload.get('craft'), # Craft de l'item
+		"category": payload.get('category', 'common'), # Catégories de l'item
+		"craft": payload.get('craft', "{}"), # Craft de l'item
 	}
 
 	economy.save_item(item, overwrite = False)
@@ -89,29 +88,24 @@ def register_item(req: Request):
 		"action": "REGISTER_ITEM",
 		"author": session["author"],
 		"item_id": item["id"],
-		"categories": item["categories"],
+		"category": item["category"],
 		"craft": item["craft"]
 	})
 
 	return item, 200
 
 def get_item(req: Request, id: str):
-	if not req.is_json:
-		server.error(req.remote_addr, 'GET', f'/marketplace/get_item/{id}', 400, "Bad Request")
-		return {"message": "Bad Request"}, 400
-
-	# =============================
-
 	if not tn_safe(id):
-		server.error(req.remote_addr, 'GET', f'/marketplace/get_item/{id}', 400, "Invalid Or Missing Parameter")
+		server.error(req.remote_addr, 'GET', f'/marketplace/items/{id}', 400, "Invalid Or Missing Parameter")
 		return {"message": "Invalid Or Missing Parameter"}, 400
 
 	item = economy.get_item(id)
 
 	if not item:
-		server.error(req.remote_addr, 'GET', f'/marketplace/get_item/{id}', 404, "Item Not Found")
+		server.error(req.remote_addr, 'GET', f'/marketplace/items/{id}', 404, "Item Not Found")
 		return {"message": "Item Not Found"}, 404
 
+	server.log(req.remote_addr, 'GET', f'/marketplace/items/{id}', 200)
 	return item, 200
 
 def search_items(req: Request):
@@ -153,7 +147,7 @@ def search_items(req: Request):
 
 		_item = get_item(req, item['id'])
 
-		if item[1] == 200:
+		if _item[1] == 200:
 			res.append(_item[0])
 
 	server.log(req.remote_addr, 'GET', f'/fetch/items')
