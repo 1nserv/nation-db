@@ -7,7 +7,7 @@ def error(ip: str, method: str, path: str, code: int = 500, message: str = "Unkn
 	date = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
 
 	output = f"\033[1;34m{ip}" + (15 - len(ip)) * "-" + f" \033[0m{date} | \033[31;1m{code}\033[0m {method} {path}"
-	print(output)
+	print(output, flush = True)
 
 	with open(os.path.join(logpath, "requests.log"), "a") as file:
 		file.write(f"\n{ip}" + (15 - len(ip)) * "-" + f" {date} | {method} {path} - {code} {message}")
@@ -16,7 +16,7 @@ def log(ip: str, method: str, path: str, code: int = 200, message: str = "Succes
 	date = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
 
 	output = f"\033[1;34m{ip}" + (15 - len(ip)) * "-" + f"\033[0m {date} | \033[32;1m{code}\033[0m {method} {path}"
-	print(output)
+	print(output, flush = True)
 
 	with open(os.path.join(logpath, "requests.log"), "a") as file:
 		file.write(f"\n{ip}" + (15 - len(ip)) * "-" + f" {date} | {method} {path} - {code} {message}")
