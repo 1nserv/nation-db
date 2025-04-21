@@ -430,7 +430,7 @@ def debit(req: Request, id: str):
 	# Transaction
 
 	if amount > account["amount"] and not (is_loan and loan["tag"] in TAXATIONS.keys()):
-		server.error(req.remote_addr, 'POST', f'/bank/accounts/{id}/debit', 401, "Account")
+		server.error(req.remote_addr, 'POST', f'/bank/accounts/{id}/debit', 401, "Account Frozen")
 		return {"message": "Account Frozen"}, 401
 
 	account["amount"] -= amount
