@@ -248,7 +248,8 @@ def update_entity(req: Request, _class: str, id: str, action: str):
 				del entity[attr][params["boost"]]
 			else:
 				entity[attr][params["boost"]] += multiplier
-		elif action == "accept_invite":
+
+		elif action == "join_group":
 			# ============ PARAMS ============
 
 			if not check_params(['id'], params, ignore_sql = False):
