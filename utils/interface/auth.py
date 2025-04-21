@@ -25,7 +25,9 @@ def ask_token(req: Request):
 		return {"message": "Incorrect Credentials"}, 401
 
 	if acc['pwd'] == hashlib.sha256(payload['password'].encode()).hexdigest():
-		token = ''.join([ chr(random.randint(65, 90)) for _ in range(256) ])
+		charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$."
+		token = ''.join([ charset[random.randint(0, 63)] for _ in range(256) ])
+
 		auth.save_session({
 			"id": round(time.time()) * random.randint(0, 256),
 			"token": token,
