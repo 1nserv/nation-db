@@ -9,6 +9,7 @@ from utils.interface import economy
 from utils.interface.economy import inventories
 from utils.interface.economy import items
 from utils.interface.economy import loans
+from utils.interface.economy import sales
 
 from utils.interface import entities
 from utils.interface.entities import positions
@@ -346,3 +347,13 @@ def get_marketplace_item(id: str):
 @app.post("/marketplace/items/<string:id>/<string:action>")
 def edit_item(id: str, action: str):
 	return items.update_item(request, id, action)
+
+# MARCHÉ => Ventes
+
+@app.get("/marketplace/sales/<string:id>")
+def get_sale(id: str):
+	return sales.get_sale(request, id)
+
+@app.post("/marketplace/sales/<string:id>/cancel")
+def cancel_sale(id: str):
+	return sales.cancel_sale(request, id)
