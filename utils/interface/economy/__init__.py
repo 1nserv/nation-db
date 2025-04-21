@@ -455,8 +455,8 @@ def debit(req: Request, id: str):
 	server.create_archive("bank", {
 		"action": "DEBIT",
 		"author": session["author"],
-		"account_id": account["id"],
-		"target_id": target['id'],
+		"account_id": target["id"],
+		"towards": account['id'],
 		"reason": payload.get("reason", "No reason provided.")
 	})
 
