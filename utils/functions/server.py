@@ -24,7 +24,7 @@ def log(ip: str, method: str, path: str, code: int = 200, message: str = "Succes
 
 def create_archive(domain: str, archive: dict):
 	name = datetime.now().strftime("%H_%M_%S")
-	date = datetime.now().strftime("%Y/%m/%d %H/%M/%S")
+	date = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 	dir = os.path.join(logpath, domain, str(datetime.now().year), str(datetime.now().month), str(datetime.now().day))
 
 	if not os.path.exists(dir):
