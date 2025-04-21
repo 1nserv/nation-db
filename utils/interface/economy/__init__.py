@@ -371,7 +371,7 @@ def debit(req: Request, id: str):
 		server.error(req.remote_addr, 'POST', f'/bank/accounts/{id}/debit', 400, "Invalid Or Missing Parameter")
 		return {"message": "Invalid Or Missing Parameter"}, 400
 
-	if payload.get("reason") and not tn_safe(payload["reason"]):
+	if payload.get("reason") and not sql_safe(payload["reason"]):
 		server.error(req.remote_addr, 'POST', f'/bank/accounts/{id}/debit', 400, "Invalid Or Missing Parameter")
 		return {"message": "Invalid Or Missing Parameter"}, 400
 
@@ -428,8 +428,8 @@ def debit(req: Request, id: str):
 
 	# Transaction
 
-	if amount > account["amount"] and not loan["tag"] in TAXATIONS.keys():
-		server.error(req.remote_addr, 'POST', f'/bank/accounts/{id}/debit', 401, "")
+	if amount > account["amount"] and not (is_loan and loan["tag"] in TAXATIONS.keys()):
+		server.error(req.remote_addr, 'POST', f'/bank/accounts/{id}/debit', 401, "Account")
 		return {"message": "Account Frozen"}, 401
 
 	account["amount"] -= amount
