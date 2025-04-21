@@ -41,7 +41,7 @@ def delete_session(id: str) -> tuple[bool, str]:
 	if not existing_data:
 		return False, "Session Not Found"
 
-	db.delete_item(dbpath, "Session", id)
+	db.delete_item(dbpath, "Sessions", id)
 	return True, "Deleted Successfully"
 
 
