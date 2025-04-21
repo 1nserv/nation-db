@@ -12,8 +12,11 @@ from . import entities
 
 dbpath = os.path.join(dbpath, "auth.db")
 
-def get_session(token: str) -> dict:
-	res = fetch("auth.Sessions", token = token)
+def get_session(query: str, by_id: bool = False) -> dict:
+	if by_id:
+		res = fetch("auth.Sessions", id = query)
+	else:
+		res = fetch("auth.Sessions", token = query)
 
 	if len(res) == 0:
 		return None
