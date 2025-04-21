@@ -131,6 +131,7 @@ with sqlite3.connect(os.path.join(dbpath, 'marketplace.db')) as economy:
 
     economy.execute("""CREATE TABLE Sales (
         id TEXT PRIMARY KEY NOT NULL,
+        open INTEGER NOT NULL,
         item_id TEXT NOT NULL,
         quantity INTEGER NOT NULL,
         price INTEGER NOT NULL, 
@@ -200,7 +201,7 @@ entities.save_position({
         "inventories": "amer",
         "items": "amer",
         "laws": "----",
-        "loans": "loan",
+        "loans": "amer",
         "members": "amer",
         "mines": "amer",
         "money": "amer",
@@ -238,11 +239,13 @@ def create_account(id: int):
     charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$."
     token = ''.join([ charset[random.randint(0, 63)] for _ in range(256) ])
 
-    auth.save_session({
+    session = {
         "id": round(time.time()) * 16 ** 4,
         "token": token,
         "author": id
-    })
+    }
+
+    auth.save_session(session)
 
     def is_safe(login: str) -> bool:
         for char in login:
@@ -275,10 +278,11 @@ def create_account(id: int):
     })
 
     print("Nom d'utilisateur:\033[1;34m", usn, "\033[0m")
-    print("ID Session:\033[1;34m", "0x0", "\033[0m")
-    print("Token:\033[1;34m", token, "\033[0m")
+    print("ID Session:\033[1;34m", session["id"], "\033[0m")
     print("ID d'enregistrement:\033[1;34m", id, "\033[0m")
-
-    input("Pressez [ENTRÉE] pour continuer.")
+    print()
+    print("Token:\033[1;34m\n", token, "\033[0m", sep = "")
+    print()
 
 create_account(1252666521046618128)
+input("Pressez [ENTRÉE] pour continuer.")

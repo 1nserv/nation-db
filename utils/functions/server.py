@@ -23,7 +23,7 @@ def log(ip: str, method: str, path: str, code: int = 200, message: str = "Succes
 
 
 def create_archive(domain: str, archive: dict):
-	name = datetime.now().strftime("%H_%M_%S.log")
+	name = datetime.now().strftime("%H_%M_%S")
 	date = datetime.now().strftime("%Y/%m/%d %H/%M/%S")
 	dir = os.path.join(logpath, domain, str(datetime.now().year), str(datetime.now().month), str(datetime.now().day))
 
@@ -38,5 +38,5 @@ def create_archive(domain: str, archive: dict):
 	if details:
 		content += f'\n\n{details}'
 
-	with open(os.path.join(dir, name), 'w') as file:
+	with open(os.path.join(dir, "{}_{}.log".format(name, archive.get("action", "ARCHIVE"))), 'w') as file:
 		file.write(content)

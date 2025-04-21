@@ -12,9 +12,9 @@ from utils.functions import server
 
 from . import positions
 
-def get_entity(req: Request, type: str, id: str):
+def get_entity(req: Request, _class: str, id: str):
 	if not sql_safe(id):
-		server.error(req.remote_addr, 'GET', f'/model/{type}/{id}', 400, "Incorrect ID")
+		server.error(req.remote_addr, 'GET', f'/model/{_class}/{id}', 400, "Incorrect ID")
 		return {"message": "Bad Request"}, 400
 
 	# ---- FOUILLE DANS LA DB ----
@@ -29,7 +29,7 @@ def get_entity(req: Request, type: str, id: str):
 		data = entities.get_entity(id)
 
 	if not data:
-		server.error(req.remote_addr, 'GET', f'/model/{type}/{id}', 404, "Entity Not Found")
+		server.error(req.remote_addr, 'GET', f'/model/{_class}/{id}', 404, "Entity Not Found")
 		return {"message": "Entity does not exist"}, 404
 
 	pos = positions.get_position(req, data['position'])
@@ -52,29 +52,29 @@ def get_entity(req: Request, type: str, id: str):
 		if owner[1] == 200:
 			data["owner"] = owner[0]
 		else:
-			server.error(req.remote_addr, "POST", f"/fetch/{type}/", 403, "Unexisting Owner")
+			server.error(req.remote_addr, "POST", f"/fetch/{_class}/", 403, "Unexisting Owner")
 			return {"message": "Unexisting Owner"}, 403
 
 		del data['owner_id']
 
-	server.log(req.remote_addr, 'GET', f'/model/{type}/{id}')
+	server.log(req.remote_addr, 'GET', f'/model/{_class}/{id}')
 	return data, 200
 
-def search_entities(req: Request, type: str):
+def search_entities(req: Request, _class: str):
 	params = req.args
 
 	for k, v in params.items():
 		if not (tn_safe(k) and sql_safe(v)):
-			server.error(req.remote_addr, "POST", f"/fetch/{type}/", 400, "Invalid Params")
+			server.error(req.remote_addr, "POST", f"/fetch/{_class}/", 400, "Invalid Params")
 			return {"message": "Invalid Params"}, 400
 
 		v = urllib.parse.unquote(v)
 
 	# ---- FOUILLE DANS LA DB ----
 
-	if type == "organizations":
+	if _class == "organizations":
 		data = entities.fetch_organizations(**params)
-	elif type == "individuals":
+	elif _class == "individuals":
 		data = entities.fetch_individuals(**params)
 	else:
 		data = entities.fetch_entities(**params)
@@ -84,12 +84,12 @@ def search_entities(req: Request, type: str):
 	for entity in data:
 		if not entity: continue
 
-		_e = get_entity(req, type, entity['id'])
+		_e = get_entity(req, _class, entity['id'])
 
 		if _e[1] == 200:
 			res.append(_e[0])
 
-	server.log(req.remote_addr, 'GET', f'/fetch/{type}')
+	server.log(req.remote_addr, 'GET', f'/fetch/{_class}')
 	return res, 200
 
 def update_entity(req: Request, _class: str, id: str, action: str):
@@ -187,9 +187,9 @@ def update_entity(req: Request, _class: str, id: str, action: str):
 		old_value = entity[attr]
 
 		try:
-			if params.get('type') == 'integer':
+			if params.get('_class') == 'integer':
 				val = int(params.get('value', 0))
-			elif params.get('type') == 'boolean':
+			elif params.get('_class') == 'boolean':
 				val = bool(params.get('value', True))
 			else:
 				val = str(params.get('value', ""))
@@ -375,8 +375,8 @@ def update_entity(req: Request, _class: str, id: str, action: str):
 
 	session = auth.get_session(token)
 
-	server.create_archive("entities", {
-		"action": "UPDATE_ENTITY",
+	server.create_archive(f"entities/{_class}", {
+		"action": "UPDATE",
 		"author": session["author"],
 		"base": _class,
 		"attribute": attr,
@@ -386,27 +386,27 @@ def update_entity(req: Request, _class: str, id: str, action: str):
 
 	return {"message": "Entity Updated"}, 200
 
-def create_entity(req: Request, type: str):
+def create_entity(req: Request, _class: str):
 	if not req.is_json:
-		server.error(req.remote_addr, 'PUT', f'/new_model/{type}', 400, "Bad Request")
+		server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 400, "Bad Request")
 		return {"message": "Payload must be a json value"}, 400
 
 	if req.authorization:
 		token = req.authorization.token
 
 		if not sql_safe(token): # Pour prévenir les attaques
-			server.error(req.remote_addr, 'PUT', f'/new_model/{type}', 400, "Bad Request")
+			server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 400, "Bad Request")
 			return {"message": "Bad Request"}, 400
 
-		if type == "individuals":
-			if not auth.check_session(token, {"members": "a---", "database": "-me-"}, at_least_one = True):
-				server.error(req.remote_addr, 'PUT', f'/new_model/{type}', 403, "Missing Permissions")
+		if _class == "individuals":
+			if not auth.check_session(token, {"members": "a---"}):
+				server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 403, "Missing Permissions")
 				return {"message": "Forbidden"}, 403
-		elif type == "organizations":
-			if not auth.check_session(token, {"organizations": "a---", "database": "-me-"}, at_least_one = True):
-				server.error(req.remote_addr, 'PUT', f'/new_model/{type}', 403, "Missing Permissions")
+		elif _class == "organizations":
+			if not auth.check_session(token, {"organizations": "a---"}):
+				server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 403, "Missing Permissions")
 	else:
-		server.error(req.remote_addr, 'PUT', f'/new_model/{type}', 401, "Missing Token")
+		server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 401, "Missing Token")
 		return {"message": "Unauthorized"}, 401
 
 	session = auth.get_session(req.authorization.token)
@@ -415,15 +415,15 @@ def create_entity(req: Request, type: str):
 	params = req.args
 
 	if 'name' not in params.keys():
-		server.error(req.remote_addr, 'PUT', f'/new_model/{type}', 400, "Missing Name Or ID")
+		server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 400, "Missing Name Or ID")
 		return {"message": "A name must be defined"}, 400
 
 	if "id" in params.keys() and not sql_safe(params["id"]): # On détecte les menaces dans l'entrée utilisateur
-		server.error(req.remote_addr, 'PUT', f'/new_model/{type}', 401, "Bad Request")
+		server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 401, "Bad Request")
 		return {"message": "Bad Request"}, 400
 
 	if not sql_safe(params["name"]): # Pareil
-		server.error(req.remote_addr, 'PUT', f'/new_model/{type}', 401, "Bad Request")
+		server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 401, "Bad Request")
 		return {"message": "Bad Request"}, 400
 
 	id = params.get("id", hex(int(time.time() * 1000))[2:].upper())
@@ -431,7 +431,7 @@ def create_entity(req: Request, type: str):
 	data = {}
 	res: tuple = (False, "Something went wrong")
 
-	if type == "individuals":
+	if _class == "individuals":
 		data = {
 			"id": id,
 			"name": params["name"],
@@ -444,13 +444,13 @@ def create_entity(req: Request, type: str):
 		}
 
 		res = entities.save_individual(data)
-	elif type == "organizations":
+	elif _class == "organizations":
 		if int(id, 16) < 100 and author["position"] not in ("superadmin", "admincouncil", "admin"): # Seul le Conseil d'Administration peut créer une nouvelle institution
-			server.error(req.remote_addr, 'PUT', f'/new_model/{type}', 403, "Missing Permissions")
+			server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 403, "Missing Permissions")
 			return {"message": "Forbidden"}, 403
 
 		if 100 < int(id, 16) < 1000 and author["position"] not in ("superadmin", "admin", "pre_rep"): # Seul le Président de la République peut créer un nouveau ministère
-			server.error(req.remote_addr, 'PUT', f'/new_model/{type}', 403, "Missing Permissions")
+			server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 403, "Missing Permissions")
 			return {"message": "Forbidden"}, 403
 
 		data = {
@@ -469,12 +469,17 @@ def create_entity(req: Request, type: str):
 
 	if not res[0]:
 		if res[1] == "Entity Already Exists":
-			server.error(req.remote_addr, 'PUT', f'/new_model/{type}', 409, "Entity Already Exists")
+			server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 409, "Entity Already Exists")
 			return {"message": "Entity Already Exists"}, 409
 		else:
-			server.error(req.remote_addr, 'PUT', f'/new_model/{type}', 422, "Error In Data")
+			server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 422, "Error In Data")
 			return {"message": "Unprocessable Entity"}, 422
 
-	server.log(req.remote_addr, 'PUT', f'/new_model/{type}', 200)
-	server.create_archive("entities", {"action": "CREATE_ENTITY", "author": session["author"], "base": type})
+	server.log(req.remote_addr, 'PUT', f'/new_model/{_class}', 200)
+	server.create_archive(f"entities/{_class}", {
+		"action": "CREATE",
+		"author": session["author"],
+		"base": _class
+	})
+
 	return data, 200

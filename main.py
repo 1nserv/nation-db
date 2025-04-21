@@ -1,17 +1,23 @@
+import time
+
 from flask import Flask, request
 
-from utils.interface.auth import *
-from utils.interface.drive import *
-"""
-from utils.interface.economy import *
-from utils.interface.economy.inventories import *
-from utils.interface.economy.items import *
-from utils.interface.economy.loans import *
-"""
-from utils.interface.entities import *
-from utils.interface.entities.positions import *
+from utils.interface import auth
+from utils.interface import drive as drive_interface
 
-from utils.common import database, drive
+from utils.interface import economy
+from utils.interface.economy import inventories
+from utils.interface.economy import items
+from utils.interface.economy import loans
+
+from utils.interface import entities
+from utils.interface.entities import positions
+
+from utils.common import database, commons, drive
+from utils.common.commons import *
+
+from utils.functions import server
+from utils.functions import entities as ef
 
 app = Flask(__name__)
 
@@ -113,13 +119,14 @@ def ping():
 		code = 200
 
 	return {
+		'_version': 300,
 		'global': _global,
 		'status': status
 	}, code
 
 @app.post('/auth/login')
 def login():
-	return ask_token(request)
+	return auth.ask_token(request)
 
 @app.put('/upload/<string:domain>/<string:bucket>')
 def upload(domain: str, bucket: str):
@@ -129,7 +136,7 @@ def upload(domain: str, bucket: str):
 
 	# Entités
 	if domain == "entities":
-		return upload_avatar(request)
+		return drive_interface.upload_avatar(request)
 
 	# Si ça correspond à rien
 	else:
@@ -158,40 +165,38 @@ def fetch(_class: str):
 
 	# Entités
 	elif _class == 'entities':
-		return search_entities(request, 'entities')
+		return entities.search_entities(request, 'entities')
 	elif _class == 'individuals':
-		return search_entities(request, 'individuals')
+		return entities.search_entities(request, 'individuals')
 	elif _class == 'organizations':
-		return search_entities(request, 'organizations')
+		return entities.search_entities(request, 'organizations')
 	elif _class == 'positions':
-		return search_positions(request)
+		return entities.search_positions(request)
+
+	# Économie
+	elif _class == 'accounts':
+		return economy.search_accounts(request)
+	elif _class == 'inventories':
+		return inventories.search_inventories(request), 200
+	elif _class == 'loans':
+		return loans.search_loans(request), 200
+	elif _class == 'sales':
+		return [], 503
+	elif _class == 'items':
+		return items.search_items(request)
+
+	# République
+	elif _class == 'votes':
+		return [], 503
+	elif _class == 'elections':
+		return [], 503
+	elif _class == 'parties':
+		return [], 503
 
 	# Si la classe ne correspond à rien
 	else:
 		server.error(request.remote_addr, 'GET', '/model', 400, "Invalid Data Class")
 		return {"message": "Invalid Data Class"}, 400
-
-	"""
-	# Économie
-	elif _class == 'accounts':
-		return search_accounts(request)
-	elif _class == 'inventories':
-		return search_inventories(request), 200
-	elif _class == 'loans':
-		return search_loans(request), 200
-	elif _class == 'sales':
-		return [], 200
-	elif _class == 'items':
-		return search_items(request)"
-	
-
-	# République
-	elif _class == 'votes':
-		return [], 200
-	elif _class == 'elections':
-		return [], 200"
-	"""
-
 
 
 # ---------- ENTITÉS ----------
@@ -204,13 +209,13 @@ def get_model(_class: str, id: str):
 
 	# Entités
 	elif _class == 'entities':
-		return get_entity(request, 'entities', id)
+		return entities.get_entity(request, 'entities', id)
 	elif _class == 'individuals':
-		return get_entity(request, 'individuals', 'i' + id)
+		return entities.get_entity(request, 'individuals', 'i' + id)
 	elif _class == 'organizations':
-		return get_entity(request, 'organizations', 'o' + id)
+		return entities.get_entity(request, 'organizations', 'o' + id)
 	elif _class == 'positions':
-		return get_position(request, id)
+		return entities.get_position(request, id)
 
 	# Si la classe ne correspond à rien
 	else:
@@ -223,7 +228,7 @@ def get_avatar(id: str):
 		server.error(request.remote_addr, 'GET', f"/model/organizations/{id}/avatar", 400, "Invalid Data Class Or Identifier")
 		return {"message": "Bad Request"}, 400
 
-	return download_avatar(request, id)
+	return drive_interface.download_avatar(request, id)
 
 @app.post('/model/<string:_class>/<string:id>/<string:action>')
 def update_model(_class: str, id: str, action: str):
@@ -232,9 +237,9 @@ def update_model(_class: str, id: str, action: str):
 		return {"message": "Bad Request"}, 400
 
 	if _class == "individuals":
-		return update_entity(request, _class, id, action)
+		return entities.update_entity(request, _class, id, action)
 	elif _class == "organizations":
-		return update_entity(request, _class, id, action)
+		return entities.update_entity(request, _class, id, action)
 
 	# Si ça correspond à rien
 	else:
@@ -250,10 +255,10 @@ def get_model_attribute(_class: str, id: str, attribute: str):
 	if _class == "individuals":
 		if attribute == "groups":
 			res = []
-			groups = entities.get_entity_groups(id)
+			groups = ef.get_entity_groups(id)
 
 			for grp in groups:
-				query = get_entity(request, "organizations", grp["id"]) # Le groupe est déjà au complet mais on prévient toute sorte de bypass
+				query = entities.get_entity(request, "organizations", grp["id"]) # La réponse est déjà au complet mais on prévient toute sorte de bypass
 
 				if query[1] == 200:
 					res.append(query[0])
@@ -271,38 +276,73 @@ def get_model_attribute(_class: str, id: str, attribute: str):
 def create_model(_class: str):
 	# Entités
 	if _class == 'individuals':
-		return create_entity(request, 'individuals')
+		return entities.create_entity(request, 'individuals')
 	elif _class == 'organizations':
-		return create_entity(request, 'organizations')
+		return entities.create_entity(request, 'organizations')
 
 	# Si ça correspond à rien
 	else:
 		server.error(request.remote_addr, 'PUT', '/new_model', 400, "Invalid Data Class")
 		return {"message": "Invalid Data Class"}, 400
 
-"""
+
 # ---------- BANQUE ----------
 
 @app.put("/bank/register_account")
 def open_bank_account():
-	return register_account(request)
+	return economy.register_account(request)
 
 @app.get("/bank/accounts/<string:id>")
 def get_bank_account(id: str):
-	return get_account(request, id)
+	return economy.get_account(request, id)
 
 @app.post("/bank/accounts/<string:id>/<string:action>")
 def edit_bank_account(id: str, action: str):
 	if action == 'freeze':
-		return freeze_account(request, id)
+		return economy.freeze_account(request, id)
 	elif action == 'flag':
-		return flag_account(request, id)
+		return economy.flag_account(request, id)
 	elif action == 'debit':
-		return debit(request, id)
+		return economy.debit(request, id)
 	elif action == 'deposit':
-		return deposit(request, id)
+		return economy.deposit(request, id)
 
 	else:
 		server.error(request.remote_addr, 'POST', f'/bank/accounts/{id}/{action}', 400, "Invalid Action")
 		return {"message": "Invalid Action"}, 400
-"""
+
+# BANQUE => Inventaires
+
+@app.put("/bank/register_inventory")
+def register_inventory():
+	return inventories.register_inventory(request)
+
+@app.get("/bank/inventories/<string:id>")
+def get_inventory(id: str):
+	return inventories.get_inventory(request, id)
+
+@app.post("/bank/inventories/<string:id>/<string:action>")
+def edit_inventory(id: str, action: str):
+	if action == 'deposit':
+		return inventories.deposit_item(request, id)
+	if action == 'sell_item':
+		return inventories.sell_item(request, id)
+
+	else:
+		server.error(request.remote_addr, 'POST', f'/bank/inventories/{id}/{action}', 400, "Invalid Action")
+		return {"message": "Invalid Action"}, 400
+
+# ---------- MARCHÉ ----------
+# MARCHÉ => Items
+
+@app.put("/marketplace/register_item")
+def register_marketplace_item():
+	return items.register_item(request)
+
+@app.get("/marketplace/items/<string:id>")
+def get_marketplace_item(id: str):
+	return items.get_item(request, id)
+
+@app.post("/marketplace/items/<string:id>/<string:action>")
+def edit_item(id: str, action: str):
+	return items.update_item(request, id, action)

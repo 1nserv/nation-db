@@ -20,7 +20,7 @@ def upload_avatar(req: Request):
 			server.error(req.remote_addr, 'PUT', f'/upload/organizations/avatars', 400, "Bad Request")
 			return {"message": "Bad Request"}, 400
 
-		if not (auth.check_session(token, { "entities": "--e-", "database": "-m--" }, at_least_one = True)):
+		if not auth.check_session(token, { "entities": "--e-" }):
 			server.error(req.remote_addr, 'PUT', f'/upload/organizations/avatars', 403, "Missing Permissions")
 			return {"message": "Forbidden"}, 403
 	else:

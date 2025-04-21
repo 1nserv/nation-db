@@ -108,8 +108,6 @@ def get_inventory(id: str) -> dict:
 	else:
 		inventory = res[0]
 
-	inventory["frozen"] = bool(inventory["frozen"].lower())
-	inventory["flagged"] = bool(inventory["frozen"].lower())
 	inventory["items"] = json.loads(inventory["items"])
 
 	return inventory
@@ -120,8 +118,6 @@ def save_inventory(data: dict, overwrite: bool = True) -> tuple[bool, str]:
 	if existing_data and not overwrite:
 		return False, "Inventory Already Exists"
 
-	data["frozen"] = int(data["frozen"])
-	data["flagged"] = int(data["flagged"])
 	data["items"] = json.dumps(data["items"])
 
 	db.put_item(dbpath, "Inventories", data, overwrite)
@@ -154,7 +150,7 @@ def get_item(id: str) -> dict:
 	else:
 		item = res[0]
 
-	item["categories"] = json.loads(item["categories"].lower())
+	item["category"] = json.loads(item["category"].lower())
 	item["craft"] = json.loads(item["craft"].lower())
 
 	return item
@@ -165,7 +161,7 @@ def save_item(data: dict, overwrite: bool = True) -> tuple[bool, str]:
 	if existing_data and not overwrite:
 		return False, "Item Already Exists"
 
-	data["categories"] = json.dumps(data["categories"])
+	data["category"] = json.dumps(data["category"])
 	data["craft"] = json.dumps(data["craft"])
 
 	db.put_item(dbpath, "Items", data, overwrite)
@@ -198,6 +194,8 @@ def get_sale(id: str) -> dict:
 	else:
 		sale = res[0]
 
+	sale['open'] = bool(sale['open'])
+
 	return sale
 
 def save_sale(data: dict, overwrite: bool = True) -> tuple[bool, str]:
@@ -205,6 +203,8 @@ def save_sale(data: dict, overwrite: bool = True) -> tuple[bool, str]:
 
 	if existing_data and not overwrite:
 		return False, "Sale Already Exists"
+
+	data['open'] = int(data['open'])
 
 	db.put_item(dbpath, "Sales", data, overwrite)
 
