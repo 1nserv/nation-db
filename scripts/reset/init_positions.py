@@ -2,6 +2,7 @@ from utils.functions import entities as ef
 
 ef.delete_position('member')
 ef.delete_position('citoyen')
+ef.delete_position('bot')
 ef.delete_position('officiel')
 
 ef.delete_position('group')
@@ -70,6 +71,20 @@ position = {
 	},
 	"manager_permissions": {}
 }
+
+ef.save_position(position)
+
+position = {
+	"id": "bot",
+	"name": "Bot Officiel",
+	"category": None,
+	"permissions": {
+		"database": "amer"
+	},
+	"manager_permissions": {}
+}
+
+ef.save_position(position)
 
 position = {
 	"id": "officier",

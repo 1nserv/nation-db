@@ -15,6 +15,7 @@ clear
 py -m scripts.reset
 
 py -m scripts.reset.init_admins
+py -m scripts.reset.init_bots
 py -m scripts.reset.init_departments
 py -m scripts.reset.init_institutions
 py -m scripts.reset.init_positions
