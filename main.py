@@ -182,7 +182,7 @@ def fetch(_class: str):
 	elif _class == 'loans':
 		return loans.search_loans(request), 200
 	elif _class == 'sales':
-		return [], 503
+		return sales.search_sales(request), 200
 	elif _class == 'items':
 		return items.search_items(request)
 
