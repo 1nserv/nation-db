@@ -413,6 +413,7 @@ def create_entity(req: Request, _class: str):
 	author = entities.get_entity(session["author"])
 
 	params = req.args
+	payload = req.json
 
 	if 'name' not in params.keys():
 		server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 400, "Missing Name Or ID")
@@ -456,7 +457,7 @@ def create_entity(req: Request, _class: str):
 		data = {
 			"id": id,
 			"name": params["name"],
-			"position": params.get("position", "group"),
+			"position": payload.get("position", "group"),
 			"register_date": round(time.time()),
 			"owner_id": session["author"],
 			"members": [],
