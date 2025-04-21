@@ -35,6 +35,15 @@ def save_session(data: dict) -> tuple[bool, str]:
 
 	return True, "OK"
 
+def delete_session(id: str) -> tuple[bool, str]:
+	existing_data = get_session(id, True)
+
+	if not existing_data:
+		return False, "Session Not Found"
+
+	db.delete_item(dbpath, "Session", id)
+	return True, "Deleted Successfully"
+
 
 def get_account(id: str) -> dict:
 	res = fetch("auth.Accounts", id = id)
@@ -55,6 +64,15 @@ def save_account(data: dict) -> tuple[bool, str]:
 	db.put_item(dbpath, "Accounts", data)
 
 	return True, "OK"
+
+def delete_account(id: str) -> tuple[bool, str]:
+	existing_data = get_account(id)
+
+	if not existing_data:
+		return False, "Account Not Found"
+
+	db.delete_item(dbpath, "Accounts", id)
+	return True, "Deleted Successfully"
 
 
 
