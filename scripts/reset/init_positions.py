@@ -169,6 +169,24 @@ ef.save_position(position)
 # ========== INSTITUTIONS ==========
 
 position = {
+	"id": "department",
+	"name": "Ministère",
+	"category": "group",
+	"permissions": {
+		"inventories": "a---",
+		"items": "a--r",
+		"laws": "a---",
+		"members": "---r",
+		"organizations": "---r"
+	},
+	"manager_permissions": {
+		"state_budgets": "--e-"
+	}
+}
+
+ef.save_position(position)
+
+position = {
 	"id": "institution",
 	"name": "Institution",
 	"category": "group",
