@@ -384,7 +384,10 @@ def debit(req: Request, id: str):
 
 	# Check digicode
 
-	given_digicode = bcrypt.hashpw(payload.get("digicode", '').encode(), db.salt).decode()
+	if payload.get('digicode'):
+		given_digicode = bcrypt.hashpw(payload.get("digicode").encode(), db.salt).decode()
+	else:
+		given_digicode = None
 
 	if given_digicode != account["digicode_hash"] and not auth.check_session(token, { "inventories": "--e-" }):
 		server.error(req.remote_addr, 'POST', f'/bank/accounts/{id}/debit', 401, "Wrong Digicode")
