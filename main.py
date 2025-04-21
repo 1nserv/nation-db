@@ -172,7 +172,7 @@ def fetch(_class: str):
 	elif _class == 'organizations':
 		return entities.search_entities(request, 'organizations')
 	elif _class == 'positions':
-		return entities.search_positions(request)
+		return positions.search_positions(request)
 
 	# Économie
 	elif _class == 'accounts':
@@ -216,7 +216,7 @@ def get_model(_class: str, id: str):
 	elif _class == 'organizations':
 		return entities.get_entity(request, 'organizations', 'o' + id)
 	elif _class == 'positions':
-		return entities.get_position(request, id)
+		return positions.get_position(request, id)
 
 	# Si la classe ne correspond à rien
 	else:
