@@ -158,14 +158,58 @@ with sqlite3.connect(os.path.join(dbpath, 'republic.db')) as republic:
         id TEXT PRIMARY KEY NOT NULL,
         title TEXT NOT NULL,
         choices TEXT NOT NULL,
-        author TEXT NOT NULL
+        author TEXT NOT NULL,
+        start INTEGER NOT NULL,
+        end INTEGER NOT NULL,
+        allowed_roles TEXT,
     );""")
 
     republic.execute("""CREATE TABLE Elections (
         id TEXT PRIMARY KEY NOT NULL,
-        candidates TEXT NOT NULL,
+        type TEXT NOT NULL,
         vote TEXT NOT NULL,
         FOREIGN KEY (vote) REFERENCES Votes(id)
+    );""")
+
+    republic.execute("""CREATE TABLE Parties (
+        org_id TEXT PRIMARY KEY NOT NULL,
+        color INTEGER NOT NULL,
+        motto TEXT,
+        politiscales TEXT NOT NULL,
+        last_election TEXT,
+        FOREIGN KEY (last_election) REFERENCES Elections(id)
+    );""")
+
+    republic.execute("""CREATE TABLE Reports (
+        id TEXT PRIMARY KEY NOT NULL,
+        reason TEXT NOT NULL,
+        details TEXT NOT NULL,
+        author TEXT NOT NULL,
+        target TEXT NOT NULL,
+        date INTEGER NOT NULL,
+        status INTEGER NOT NULL
+    );""")
+
+    republic.execute("""CREATE TABLE Lawsuits (
+        id TEXT PRIMARY KEY NOT NULL,
+        judge TEXT NOT NULL,
+        title TEXT NOT NULL,
+        date INTEGER NOT NULL,
+        report TEXT NOT NULL,
+        private INTEGER NOT NULL,
+        status INTEGER NOT NULL,
+        FOREIGN KEY (report) REFERENCES Reports(id)
+    );""")
+
+    republic.execute("""CREATE TABLE Sanctions (
+        id TEXT PRIMARY KEY NOT NULL,
+        type TEXT NOT NULL,
+        status INTEGER NOT NULL,
+        date INTEGER NOT NULL,
+        duration INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        lawsuit TEXT NOT NULL,
+        Foreign KEY (lawsuit) REFERENCES Lawsuits(id)
     );""")
 
     republic.commit()
