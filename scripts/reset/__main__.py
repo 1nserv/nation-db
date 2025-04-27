@@ -157,7 +157,8 @@ with sqlite3.connect(os.path.join(dbpath, 'republic.db')) as republic:
     republic.execute("""CREATE TABLE Votes (
         id TEXT PRIMARY KEY NOT NULL,
         title TEXT NOT NULL,
-        choices TEXT NOT NULL,
+        propositions TEXT NOT NULL,
+        results TEXT NOT NULL,
         author TEXT NOT NULL,
         start INTEGER NOT NULL,
         end INTEGER NOT NULL,
