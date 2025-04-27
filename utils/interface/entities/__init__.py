@@ -105,12 +105,7 @@ def update_entity(req: Request, _class: str, id: str, action: str):
 		server.error(req.remote_addr, "POST", f"/model/{_class}/{id}/{action}", 400, "Invalid Data Class")
 		return {"message": "Invalid Data Class"}, 400
 
-	res = get_entity(req, _class, id) # On récupère l'entité et on en profite pour une nouvelle requête en cas d'accès non autorisé
-
-	if res[1] != 200: # Si on n'a pas d'entité aucun intérêt à poursuivre
-		return res
-	else:
-		entity = res[0]
+	entity = entities.get_entity(id)
 
 	params = req.args
 
@@ -129,7 +124,7 @@ def update_entity(req: Request, _class: str, id: str, action: str):
 		server.error(req.remote_addr, "POST", f"/model/{_class}/{id}/{action}", 401, "Unauthorized")
 		return {"message": "Unauthorized"}, 401
 
-	if _class == 'individuals' and not auth.check_session(token, { "database": "ame-", "entities": "--e-" }, True):
+	if _class == 'individuals' and not auth.check_session(token, { "entities": "--er" }):
 		server.error(req.remote_addr, "POST", f"/model/{_class}/{id}/{action}", 403, "Missing Permissions")
 		return {"message": "Missing Permissions"}, 403
 
@@ -406,11 +401,12 @@ def create_entity(req: Request, _class: str):
 		elif _class == "organizations":
 			if not auth.check_session(token, {"organizations": "a---"}):
 				server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 403, "Missing Permissions")
+				return {"message": "Forbidden"}, 403
 	else:
 		server.error(req.remote_addr, 'PUT', f'/new_model/{_class}', 401, "Missing Token")
 		return {"message": "Unauthorized"}, 401
 
-	session = auth.get_session(req.authorization.token)
+	session = auth.get_session(token)
 	author = entities.get_entity(session["author"])
 
 	params = req.args
