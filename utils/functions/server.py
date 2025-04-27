@@ -1,7 +1,18 @@
 from datetime import datetime
+import json
 import os
+import requests
 
 from utils.db import logpath
+
+webhooks: dict = {}
+
+try:
+	with open('.local/webhooks.json', 'r') as file:
+		webhooks = json.load(file)
+except FileNotFoundError:
+	pass
+
 
 def error(ip: str, method: str, path: str, code: int = 500, message: str = "Unknown Error"):
 	date = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
@@ -40,3 +51,29 @@ def create_archive(domain: str, archive: dict):
 
 	with open(os.path.join(dir, "{}_{}.log".format(name, archive.get("action", "ARCHIVE"))), 'w') as file:
 		file.write(content)
+
+	# Envoi de l'arhcive sur Discord via un webhook
+	data = {
+		"content": '',
+		"embeds": [
+			{
+				"title": "Archive",
+				"color": int(webhooks[domain]['color'], 16),
+				"timestamp": datetime.now().isoformat(),
+				"footer": {
+					"text": domain
+				},
+				"fields": [
+					{
+						"name": k.upper(),
+						"value": v,
+						"inline": False
+					}
+
+					for k, v in archive.items()
+				]
+			}
+		]
+	}
+
+	response = requests.post(webhooks[domain]['url'], json = data)
