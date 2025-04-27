@@ -498,7 +498,7 @@ def deposit(req: Request, id: str):
 		server.error(req.remote_addr, 'POST', f'/bank/accounts/{id}/deposit', 400, "Invalid Or Missing Parameter")
 		return {"message": "Invalid Or Missing Parameter"}, 400
 
-	if payload.get("reason") and not tn_safe(payload["reason"]):
+	if payload.get("reason") and not sql_safe(payload["reason"]):
 		server.error(req.remote_addr, 'POST', f'/bank/accounts/{id}/deposit', 400, "Invalid Or Missing Parameter")
 		return {"message": "Invalid Or Missing Parameter"}, 400
 
