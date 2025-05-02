@@ -34,13 +34,21 @@ with sqlite3.connect(os.path.join(dbpath, 'auth.db')) as auth:
     auth.execute("""CREATE TABLE Sessions (
         id TEXT PRIMARY KEY NOT NULL,
         token CHAR(256) UNIQUE NOT NULL,
-        author TEXT NOT NULL
+        author TEXT NOT NULL,
+        provider TEXT NOT NULL
     );""")
 
     auth.execute("""CREATE TABLE Accounts (
         id TEXT PRIMARY KEY NOT NULL,
         pwd TEXT NOT NULL,
         author_id TEXT UNIQUE NOT NULL
+    );""")
+
+    auth.execute("""CREATE TABLE Providers (
+        auth_code TEXT PRIMARY KEY NOT NULL,
+        provider TEXT NOT NULL,
+        profile_id TEXT NOT NULL,
+        author_id TEXT NOT NULL
     );""")
 
     auth.commit()
@@ -157,15 +165,60 @@ with sqlite3.connect(os.path.join(dbpath, 'republic.db')) as republic:
     republic.execute("""CREATE TABLE Votes (
         id TEXT PRIMARY KEY NOT NULL,
         title TEXT NOT NULL,
-        choices TEXT NOT NULL,
-        author TEXT NOT NULL
+        propositions TEXT NOT NULL,
+        results TEXT NOT NULL,
+        author TEXT NOT NULL,
+        start INTEGER NOT NULL,
+        end INTEGER NOT NULL,
+        allowed_roles TEXT
     );""")
 
     republic.execute("""CREATE TABLE Elections (
         id TEXT PRIMARY KEY NOT NULL,
-        candidates TEXT NOT NULL,
+        type TEXT NOT NULL,
         vote TEXT NOT NULL,
         FOREIGN KEY (vote) REFERENCES Votes(id)
+    );""")
+
+    republic.execute("""CREATE TABLE Parties (
+        org_id TEXT PRIMARY KEY NOT NULL,
+        color INTEGER NOT NULL,
+        motto TEXT,
+        politiscales TEXT NOT NULL,
+        last_election TEXT,
+        FOREIGN KEY (last_election) REFERENCES Elections(id)
+    );""")
+
+    republic.execute("""CREATE TABLE Reports (
+        id TEXT PRIMARY KEY NOT NULL,
+        reason TEXT NOT NULL,
+        details TEXT NOT NULL,
+        author TEXT NOT NULL,
+        target TEXT NOT NULL,
+        date INTEGER NOT NULL,
+        status INTEGER NOT NULL
+    );""")
+
+    republic.execute("""CREATE TABLE Lawsuits (
+        id TEXT PRIMARY KEY NOT NULL,
+        judge TEXT NOT NULL,
+        title TEXT NOT NULL,
+        date INTEGER NOT NULL,
+        report TEXT NOT NULL,
+        private INTEGER NOT NULL,
+        status INTEGER NOT NULL,
+        FOREIGN KEY (report) REFERENCES Reports(id)
+    );""")
+
+    republic.execute("""CREATE TABLE Sanctions (
+        id TEXT PRIMARY KEY NOT NULL,
+        type TEXT NOT NULL,
+        status INTEGER NOT NULL,
+        date INTEGER NOT NULL,
+        duration INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        lawsuit TEXT NOT NULL,
+        Foreign KEY (lawsuit) REFERENCES Lawsuits(id)
     );""")
 
     republic.commit()
@@ -242,7 +295,8 @@ def create_account(id: int):
     session = {
         "id": round(time.time()) * 16 ** 4,
         "token": token,
-        "author": id
+        "author": id,
+        "provider": "initial",
     }
 
     auth.save_session(session)
@@ -284,5 +338,5 @@ def create_account(id: int):
     print("Token:\033[1;34m\n", token, "\033[0m", sep = "")
     print()
 
-create_account(1252666521046618128)
+create_account(0)
 input("Pressez [ENTRÉE] pour continuer.")
