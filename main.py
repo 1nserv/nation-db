@@ -1,6 +1,9 @@
+import dotenv
+import os
 import time
 
-from flask import Flask, request
+from flask import Flask, request, redirect
+from flask_cors import CORS
 
 from utils.interface import auth
 from utils.interface import drive as drive_interface
@@ -21,6 +24,7 @@ from utils.functions import server
 from utils.functions import entities as ef
 
 app = Flask(__name__)
+CORS(app, resources = { r"/*": {"origins": "*"} })
 
 @app.get('/ping')
 def ping():
@@ -38,6 +42,7 @@ def ping():
 
 		for _ in range(10):
 			database.fetch('auth.Sessions')
+			database.fetch('auth.Providers')
 			database.fetch('auth.Accounts')
 
 		status['auth'] = int((time.time() - start) * 1000 / 10)
@@ -125,9 +130,37 @@ def ping():
 		'status': status
 	}, code
 
+"""
+AUTHENTIFICATION
+"""
+
 @app.post('/auth/login')
 def login():
-	return auth.ask_token(request)
+	medium = request.args.get('medium', 'password')
+
+	if medium == "password":
+		return auth.ask_token(request)
+	elif medium == "code":
+		return auth.oauth_login(request)
+
+	else:
+		server.error(request.remote_addr, 'POST', '/auth/login', 400, "Invalid Medium")
+		return {"message": "Invalid Medium"}, 400
+
+# Discord
+@app.route("/auth/discord")
+def discord_login():
+    return redirect(os.getenv('DISCORD_OAUTH2_URL').format(state = request.args.get('authCode')))
+
+@app.route("/auth/callback/<string:provider>")
+def callback(provider: str):
+	if provider == "discord":
+		return auth.discord_callback(request)
+
+
+"""
+DRIVE
+"""
 
 @app.put('/upload/<string:domain>/<string:bucket>')
 def upload(domain: str, bucket: str):

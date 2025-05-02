@@ -34,13 +34,21 @@ with sqlite3.connect(os.path.join(dbpath, 'auth.db')) as auth:
     auth.execute("""CREATE TABLE Sessions (
         id TEXT PRIMARY KEY NOT NULL,
         token CHAR(256) UNIQUE NOT NULL,
-        author TEXT NOT NULL
+        author TEXT NOT NULL,
+        provider TEXT NOT NULL
     );""")
 
     auth.execute("""CREATE TABLE Accounts (
         id TEXT PRIMARY KEY NOT NULL,
         pwd TEXT NOT NULL,
         author_id TEXT UNIQUE NOT NULL
+    );""")
+
+    auth.execute("""CREATE TABLE Providers (
+        auth_code TEXT PRIMARY KEY NOT NULL,
+        provider TEXT NOT NULL,
+        profile_id TEXT NOT NULL,
+        author_id TEXT NOT NULL
     );""")
 
     auth.commit()
@@ -162,7 +170,7 @@ with sqlite3.connect(os.path.join(dbpath, 'republic.db')) as republic:
         author TEXT NOT NULL,
         start INTEGER NOT NULL,
         end INTEGER NOT NULL,
-        allowed_roles TEXT,
+        allowed_roles TEXT
     );""")
 
     republic.execute("""CREATE TABLE Elections (
@@ -287,7 +295,8 @@ def create_account(id: int):
     session = {
         "id": round(time.time()) * 16 ** 4,
         "token": token,
-        "author": id
+        "author": id,
+        "provider": "initial",
     }
 
     auth.save_session(session)
@@ -329,5 +338,5 @@ def create_account(id: int):
     print("Token:\033[1;34m\n", token, "\033[0m", sep = "")
     print()
 
-create_account(1252666521046618128)
+create_account(0)
 input("Pressez [ENTRÉE] pour continuer.")
