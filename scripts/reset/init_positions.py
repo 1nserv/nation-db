@@ -3,7 +3,10 @@ from utils.functions import entities as ef
 ef.delete_position('member')
 ef.delete_position('citoyen')
 ef.delete_position('bot')
-ef.delete_position('officiel')
+ef.delete_position('officier')
+ef.delete_position('officier_etat')
+ef.delete_position('gd_officier_etat')
+ef.delete_position('garant')
 
 ef.delete_position('group')
 ef.delete_position('parti')
@@ -17,6 +20,9 @@ ef.delete_position('assemblee')
 ef.delete_position('commissariat')
 ef.delete_position('hexabank')
 ef.delete_position('archives')
+
+
+# ========== BASE ==========
 
 position = {
 	"id": "member",
@@ -86,16 +92,184 @@ position = {
 
 ef.save_position(position)
 
+
+# ========== OFFICIERS ==========
+
 position = {
 	"id": "officier",
 	"name": "Officier",
 	"category": "citoyen",
 	"permissions": {
-		"members": "-me-"
+		"reports": "---r",
+		"sanctions": "---r"
 	},
 	"manager_permissions": {
 		"constitution": "--e-"
 	}
+}
+
+ef.save_position(position)
+
+position = {
+	"id": "avocat",
+	"name": "Avocat",
+	"category": "officier",
+	"permissions": {
+		"reports": "-m--"
+	},
+	"manager_permissions": {
+		"constitution": "--e-"
+	}
+}
+
+ef.save_position(position)
+
+position = {
+	"id": "moderateur",
+	"name": "Modérateur",
+	"category": "officier",
+	"permissions": {
+		"reports": "-m--",
+		"sanctions": "a---"
+	},
+	"manager_permissions": {
+		"constitution": "--e-"
+	}
+}
+
+ef.save_position(position)
+
+# ========== OFFICIERS D'ÉTAT ==========
+
+position = {
+	"id": "officier_etat",
+	"name": "Officier d'État",
+	"category": "officier",
+	"permissions": {
+		"database": "---r"
+	},
+	"manager_permissions": {
+		"constitution": "--e-"
+	}
+}
+
+ef.save_position(position)
+
+position = {
+	"id": "repr",
+	"name": "Député",
+	"category": "officier_etat",
+	"permissions": {
+		"laws": "-m--"
+	},
+	"manager_permissions": {
+		"constitution": "--e-"
+	}
+}
+
+ef.save_position(position)
+
+position = {
+	"id": "judge",
+	"name": "Juge",
+	"category": "officier_etat",
+	"permissions": {
+		"reports": "-m--",
+		"sanctions": "-me-"
+	},
+	"manager_permissions": {
+		"constitution": "--e-"
+	}
+}
+
+ef.save_position(position)
+
+# ========== GRANDS OFFICIERS D'ÉTAT ==========
+
+position = {
+	"id": "gd_officier_etat",
+	"name": "Grand Officier d'État",
+	"category": "officier_etat",
+	"permissions": {
+		"state_budgets": "---r"
+	},
+	"manager_permissions": {
+		"constitution": "--e-"
+	}
+}
+
+ef.save_position(position)
+
+position = {
+	"id": "pre_an",
+	"name": "Président de l'Assemblée Nationale",
+	"category": "gd_officier_etat",
+	"permissions": {
+		"votes": "a---"
+	},
+	"manager_permissions": {
+		"constitution": "--e-"
+	}
+}
+
+ef.save_position(position)
+
+position = {
+	"id": "ministre",
+	"name": "Ministre",
+	"category": "gd_officier_etat",
+	"permissions": {
+		"bots": "-me-",
+		"laws": "ame-"
+	},
+	"manager_permissions": {
+		"constitution": "--e-"
+	}
+}
+
+ef.save_position(position)
+
+# ========== GARANTS DE LA CONSTITUTION ==========
+
+position = {
+	"id": "garant",
+	"name": "Garant de la Constitution",
+	"category": "gd_officier_etat",
+	"permissions": {
+		"constitution": "--e-",
+		"laws": "ame-",
+		"national_channel": "ame-",
+	},
+	"manager_permissions": {
+		"constitution": "--e-"
+	}
+}
+
+ef.save_position(position)
+
+position = {
+	"id": "pre_rep",
+	"name": "Président de la République",
+	"category": "garant",
+	"permissions": {
+		"state_budgets": "ame-"
+	},
+	"manager_permissions": {
+		"constitution": "--e-"
+	}
+}
+
+ef.save_position(position)
+
+position = {
+	"id": "sage",
+	"name": "Sage",
+	"category": "garant",
+	"permissions": {
+		"database": "amer",
+		"money": "a---"
+	},
+	"manager_permissions": {}
 }
 
 ef.save_position(position)
@@ -285,19 +459,7 @@ position = {
 		"items": "amer",
 		"loans": "amer",
 		"mines": "ame-",
-		"money": "ame-"
-	},
-	"manager_permissions": {}
-}
-
-ef.save_position(position)
-
-position = {
-	"id": "archives",
-	"name": "Archives",
-	"category": "institution",
-	"permissions": {
-		"database": "---r"
+		"money": "a---"
 	},
 	"manager_permissions": {}
 }
