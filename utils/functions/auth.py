@@ -75,10 +75,62 @@ def delete_account(id: str) -> tuple[bool, str]:
 	return True, "Deleted Successfully"
 
 
+def get_oauth(code: str) -> dict:
+	res = fetch("auth.Providers", auth_code = code)
 
-def check_session(token: str, permissions: dict[str, str]):
-	session = get_session(token)
+	if len(res) == 0:
+		return None
+	else:
+		acc = res[0]
+
+	return acc
+
+def save_oauth(data: dict) -> tuple[bool, str]:
+	existing_data = get_oauth(data["auth_code"])
+
+	if existing_data:
+		return False, "OAuth Token Already Exists"
+
+	db.put_item(dbpath, "Providers", data)
+
+	return True, "OK"
+
+def delete_oauth(code: str) -> tuple[bool, str]:
+	existing_data = get_oauth(code)
+
+	if not existing_data:
+		return False, "OAuth Token Not Found"
+
+	db.delete_item(dbpath, "Providers", code)
+	return True, "Deleted Successfully"
+
+
+
+def check_permissions(permissions: dict[str, str], required: dict[str, str] = {}) -> bool:
 	permissions = merge_permissions(permissions, { "database": "-m--" })
+
+	for key, value in required.items():
+		if key not in permissions:
+			continue
+
+		match = True
+		for idx, char in enumerate(value):
+			if char != "-" and char != permissions[key][idx]:
+				match = False
+				break
+
+		if match:
+			return True
+
+	return False
+
+def check_position(id: str, permissions: dict[str, str] = {}):
+	pos = entities.get_position(id)
+
+	return check_permissions(pos["permissions"], permissions)
+
+def check_session(token: str, permissions: dict[str, str] = {}):
+	session = get_session(token)
 
 	if not session:
 		return False
@@ -88,21 +140,4 @@ def check_session(token: str, permissions: dict[str, str]):
 	if not individual:
 		return False
 
-	pos = entities.get_position(individual["position"])
-
-	match_found = False
-
-	for key, value in permissions.items():
-		if key not in pos["permissions"]:
-			continue
-
-		match = True
-		for idx, char in enumerate(value):
-			if char != "-" and char != pos["permissions"][key][idx]:
-				match = False
-				break
-
-		if match:
-			return True
-
-	return False
+	return check_position(individual["position"], permissions)
