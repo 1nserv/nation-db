@@ -85,6 +85,7 @@ position = {
 	"name": "Bot Officiel",
 	"category": None,
 	"permissions": {
+		"aliases": "a---",
 		"database": "amer"
 	},
 	"manager_permissions": {}
