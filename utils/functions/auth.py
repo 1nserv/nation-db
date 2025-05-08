@@ -13,6 +13,15 @@ from . import entities
 dbpath = os.path.join(dbpath, "auth.db")
 
 def get_session(query: str, by_id: bool = False) -> dict:
+	if ':' in query:
+		author = query.split(':')[0]
+		query = query.split(':')[1]
+
+		if not check_session(author, { "aliases": "a---" }):
+			return None
+
+		by_id = True
+
 	if by_id:
 		res = fetch("auth.Sessions", id = query)
 	else:
