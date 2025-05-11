@@ -24,7 +24,7 @@ def put_item(dbpath: str, table: str, item: dict, overwrite: bool = False):
 		table_columns = [ row[1] for row in cursor.fetchall() ]
 
 		if sorted(item.keys()) != sorted(table_columns):
-			raise ValueError("Keys don't match with table scheme.")
+			raise ValueError(f"Keys don't match with table scheme: Expected {sorted(table_columns)}, got {sorted(item.keys())}")
 
 		placeholders = ", ".join("?" for _ in item)
 		columns = ", ".join(item.keys())
