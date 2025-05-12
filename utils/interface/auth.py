@@ -31,7 +31,7 @@ def ask_token(req: Request):
 		token = ''.join([ charset[random.randint(0, 63)] for _ in range(256) ])
 
 		auth.save_session({
-			"id": round(time.time()) * random.randint(0, 256),
+			"id": hex(round(time.time()) * random.randint(0, 256))[2:].upper(),
 			"token": token,
 			"author": acc["author_id"],
 			"provider": "password"

@@ -13,6 +13,15 @@ from . import entities
 dbpath = os.path.join(dbpath, "auth.db")
 
 def get_session(query: str, by_id: bool = False) -> dict:
+	if not by_id and ':' in query:
+		token = query.split(':')[0]
+		query = query.split(':')[1]
+
+		if not check_session(token, { "aliases": "a---" }):
+			return None
+
+		by_id = True
+
 	if by_id:
 		res = fetch("auth.Sessions", id = query)
 	else:
@@ -107,7 +116,7 @@ def delete_oauth(code: str) -> tuple[bool, str]:
 
 
 def check_permissions(permissions: dict[str, str], required: dict[str, str] = {}) -> bool:
-	permissions = merge_permissions(permissions, { "database": "-m--" })
+	required = merge_permissions(required, { "database": "-m--" })
 
 	for key, value in required.items():
 		if key not in permissions:
